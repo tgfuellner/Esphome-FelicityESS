@@ -41,4 +41,4 @@ This should compile and upload the code to the esp32
 
 If You have only one Felicity Unit, delete entry m2 under modbus_controller and all sensors reffering to m2.
 
-If You have more Felicity Unit, create a modbus_controller per Unit.
+If You have more Felicity Units, create a modbus_controller per Unit.
