@@ -1,0 +1,167 @@
+# LiFePO4 Akku Felicity 48100LCG01
+#
+substitutions:
+  friendly_name: "Felicity LiFePO4"
+  name: "felicity-ess"
+
+esphome:
+  name: $name
+  friendly_name: $friendly_name
+
+esp32:
+  board: mhetesp32minikit
+# Pinout: https://i1.wp.com/www.esp32learning.com/wp-content/uploads/2018/12/MH-ET_LIVE_D1_mini_ESP32_pinout.png?resize=696%2C479
+
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+  reboot_timeout: 0s
+  encryption:
+    key: !secret api_encryption_key
+
+web_server:
+  port: 80
+
+# default HA integration, OTA updater and backup http web portal                                                                                                                                                                         
+ota:
+  platform: esphome
+
+captive_portal:
+
+wifi:
+  networks:
+  - ssid: WLAN
+    password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails                                                                                                                                                               
+  ap:
+    ssid: $name
+
+uart:
+  id: mod_uart
+  tx_pin: 16  
+  rx_pin: 17  
+  baud_rate: 9600
+
+modbus:
+  send_wait_time: 200ms
+  uart_id: mod_uart
+  id: mod_bus
+
+modbus_controller:
+- id: m1
+  address: 1
+  modbus_id: mod_bus
+  command_throttle: 100ms
+  setup_priority: -10
+  update_interval: 30s
+
+- id: m2
+  address: 2
+  modbus_id: mod_bus
+  command_throttle: 100ms
+  setup_priority: -10
+  update_interval: 30s
+
+sensor:
+# Battery Module 1
+  - platform: modbus_controller
+    modbus_controller_id: m1
+    name: "BMS1 Version"
+    register_type: holding
+    skip_updates: 100
+    address: 0xF80B
+    value_type: U_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: m1
+    name: "Voltage1"
+    register_type: holding
+    skip_updates: 1
+    address: 0x1306  # 0x1302 + 8/2
+    unit_of_measurement: "V"
+    device_class: voltage
+    accuracy_decimals: 2
+    value_type: U_WORD
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: m1
+    name: "Current1"
+    register_type: holding
+    skip_updates: 1
+    address: 0x1307  # 0x1302 + 10/2
+    unit_of_measurement: "A"
+    device_class: current
+    accuracy_decimals: 2
+    value_type: S_WORD
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: m1
+    name: "SOC1"
+    register_type: holding
+    skip_updates: 2
+    address: 0x130B  # 0x1302 + 18/2
+    unit_of_measurement: "%"
+    value_type: U_WORD
+
+# Battery Module 2
+  - platform: modbus_controller
+    modbus_controller_id: m2
+    name: "BMS2 Version"
+    register_type: holding
+    skip_updates: 100
+    address: 0xF80B
+    value_type: U_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: m2
+    name: "Voltage2"
+    register_type: holding
+    skip_updates: 1
+    address: 0x1306  # 0x1302 + 8/2
+    unit_of_measurement: "V"
+    device_class: voltage
+    accuracy_decimals: 2
+    value_type: U_WORD
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: m2
+    name: "Current2"
+    register_type: holding
+    skip_updates: 1
+    address: 0x1307  # 0x1302 + 10/2
+    unit_of_measurement: "A"
+    device_class: current
+    accuracy_decimals: 2
+    value_type: S_WORD
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: m2
+    name: "SOC2"
+    register_type: holding
+    skip_updates: 2
+    address: 0x130B  # 0x1302 + 18/2
+    unit_of_measurement: "%"
+    value_type: U_WORD
+
+###############
+
+  - platform: wifi_signal
+    name: "$friendly_name WiFi Signal"
+    update_interval: 60s
+    entity_category: "diagnostic"
+    filters:
+      - sliding_window_moving_average:
+          window_size: 15
+          send_every: 15
+          send_first_at: 1
