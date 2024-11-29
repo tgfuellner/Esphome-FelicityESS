@@ -3,11 +3,11 @@ Read info from FelicityESS 48100LCG01 with esphome over RS485 (ModBus)
 
 ## My setup:
 
-- Two FelicityESS LiFePO4  Modules each having 5kWh:
+- Two FelicityESS LiFePO4  Units each having 5kWh:
 
 ![PXL_20241129_152614761 MP](https://github.com/user-attachments/assets/dcc261d7-df65-42ea-9c78-91f3ef903ff6)
 
-- ESP32 Module and an RS485 transceiver module:
+- ESP32 module and an RS485 transceiver module:
 
 ![PXL_20241129_152550256](https://github.com/user-attachments/assets/88ba2ca4-953b-4313-94db-17ee36df1227)
 
@@ -29,3 +29,9 @@ then execute:
 `esphome run felicity-speicher.yaml`
 
 This should compile and uload the code to the esp32
+
+## Config
+
+If You have only one Felicity Unit, delete entry m2 under modbus_controller and all sensors reffering to m2.
+
+If You have more Felicity Unit, create a modbus_controller per Unit.
