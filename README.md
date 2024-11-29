@@ -28,7 +28,14 @@ then execute:
 
 `esphome run felicity-speicher.yaml`
 
-This should compile and uload the code to the esp32
+This should compile and upload the code to the esp32
+
+## Home Assistant
+
+- Esphome plays well with https://www.home-assistant.io/
+
+<img width="317" alt="image" src="https://github.com/user-attachments/assets/dcd4d62b-c6cd-49c3-bea3-abb310fe0931">
+
 
 ## Config
 
