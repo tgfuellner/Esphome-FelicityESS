@@ -13,7 +13,8 @@ esp32:
 # Pinout: https://i1.wp.com/www.esp32learning.com/wp-content/uploads/2018/12/MH-ET_LIVE_D1_mini_ESP32_pinout.png?resize=696%2C479
 
 logger:
-  level: DEBUG
+#  level: DEBUG
+  level: INFO
 
 # Enable Home Assistant API
 api:
@@ -69,7 +70,7 @@ sensor:
 # Battery Module 1
   - platform: modbus_controller
     modbus_controller_id: m1
-    name: "BMS1 Version"
+    name: "Bat1 BMS Version"
     register_type: holding
     skip_updates: 100
     address: 0xF80B
@@ -77,7 +78,7 @@ sensor:
 
   - platform: modbus_controller
     modbus_controller_id: m1
-    name: "Voltage1"
+    name: "Bat1 Voltage"
     register_type: holding
     skip_updates: 1
     address: 0x1306  # 0x1302 + 8/2
@@ -90,7 +91,7 @@ sensor:
 
   - platform: modbus_controller
     modbus_controller_id: m1
-    name: "Current1"
+    name: "Bat1 Current"
     register_type: holding
     skip_updates: 1
     address: 0x1307  # 0x1302 + 10/2
@@ -103,17 +104,19 @@ sensor:
 
   - platform: modbus_controller
     modbus_controller_id: m1
-    name: "SOC1"
+    name: "Bat1 SOC"
     register_type: holding
     skip_updates: 2
     address: 0x130B  # 0x1302 + 18/2
     unit_of_measurement: "%"
     value_type: U_WORD
+
+
 
 # Battery Module 2
   - platform: modbus_controller
     modbus_controller_id: m2
-    name: "BMS2 Version"
+    name: "Bat2 BMS Version"
     register_type: holding
     skip_updates: 100
     address: 0xF80B
@@ -121,7 +124,7 @@ sensor:
 
   - platform: modbus_controller
     modbus_controller_id: m2
-    name: "Voltage2"
+    name: "Bat2 Voltage"
     register_type: holding
     skip_updates: 1
     address: 0x1306  # 0x1302 + 8/2
@@ -134,7 +137,7 @@ sensor:
 
   - platform: modbus_controller
     modbus_controller_id: m2
-    name: "Current2"
+    name: "Bat2 Current"
     register_type: holding
     skip_updates: 1
     address: 0x1307  # 0x1302 + 10/2
@@ -147,12 +150,122 @@ sensor:
 
   - platform: modbus_controller
     modbus_controller_id: m2
-    name: "SOC2"
+    name: "Bat2 SOC"
     register_type: holding
     skip_updates: 2
     address: 0x130B  # 0x1302 + 18/2
     unit_of_measurement: "%"
     value_type: U_WORD
+
+# Cell Voltages of first Battery
+
+  - platform: modbus_controller
+    modbus_controller_id: m1
+    name: "Bat1 MinCell"
+    register_type: holding
+    register_count: 16
+    response_size: 32
+    address: 0x132A
+    unit_of_measurement: "V"
+    device_class: voltage
+    accuracy_decimals: 3
+    value_type: U_WORD
+    lambda: |-
+      uint16_t raw,rawMin=0xffff;
+      for (int i=0; i<32; i+=2) {
+        raw = data[item->offset+i] << 8 | data[item->offset+i+1];
+        if (raw < rawMin) {
+          rawMin = raw;
+        }
+      }
+      return rawMin * 0.001;
+  - platform: modbus_controller
+    modbus_controller_id: m1
+    name: "Bat1 MaxCell"
+    register_type: holding
+    register_count: 16
+    response_size: 32
+    address: 0x132A
+    unit_of_measurement: "V"
+    device_class: voltage
+    accuracy_decimals: 3
+    value_type: U_WORD
+    lambda: |-
+      uint16_t raw,rawMax=0;
+      for (int i=0; i<32; i+=2) {
+        raw = data[item->offset+i] << 8 | data[item->offset+i+1];
+        if (raw > rawMax) {
+          rawMax = raw;
+        }
+      }
+      return rawMax * 0.001;
+
+# Not working:
+#  - platform: modbus_controller
+#    modbus_controller_id: m1
+#    name: "Bat1 Temperatur"
+#    register_type: holding
+#    skip_updates: 1
+#    address: 0x1341  # 0x132A + 17, one of the four sensors
+#    unit_of_measurement: "°C"
+#    device_class: temperature
+#    accuracy_decimals: 1
+#    value_type: U_WORD
+    
+# Cell Voltages of second Battery
+
+  - platform: modbus_controller
+    modbus_controller_id: m2
+    name: "Bat2 MinCell"
+    register_type: holding
+    register_count: 16
+    response_size: 32
+    address: 0x132A
+    unit_of_measurement: "V"
+    device_class: voltage
+    accuracy_decimals: 3
+    value_type: U_WORD
+    lambda: |-
+      uint16_t raw,rawMin=0xffff;
+      for (int i=0; i<32; i+=2) {
+        raw = data[item->offset+i] << 8 | data[item->offset+i+1];
+        if (raw < rawMin) {
+          rawMin = raw;
+        }
+      }
+      return rawMin * 0.001;
+  - platform: modbus_controller
+    modbus_controller_id: m2
+    name: "Bat2 MaxCell"
+    register_type: holding
+    register_count: 16
+    response_size: 32
+    address: 0x132A
+    unit_of_measurement: "V"
+    device_class: voltage
+    accuracy_decimals: 3
+    value_type: U_WORD
+    lambda: |-
+      uint16_t raw,rawMax=0;
+      for (int i=0; i<32; i+=2) {
+        raw = data[item->offset+i] << 8 | data[item->offset+i+1];
+        if (raw > rawMax) {
+          rawMax = raw;
+        }
+      }
+      return rawMax * 0.001;
+
+# Not working:
+#  - platform: modbus_controller
+#    modbus_controller_id: m2
+#    name: "Bat2 Temperatur"
+#    register_type: holding
+#    skip_updates: 1
+#    address: 0x1341  # 0x132A + 17, one of the four sensors
+#    unit_of_measurement: "°C"
+#    device_class: temperature
+#    accuracy_decimals: 1
+#    value_type: U_WORD
 
 ###############
 
@@ -165,3 +278,4 @@ sensor:
           window_size: 15
           send_every: 15
           send_first_at: 1
+
